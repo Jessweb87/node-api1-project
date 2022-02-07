@@ -94,6 +94,12 @@ server.delete('/api/users/:id', async (req, res) => {
     }
 })
 
+// [POST] /api/users                                                                                                                                  
+// √ [1] responds with a new user (37 ms)                                                                                                           
+// √ [2] adds a new user to the db (5 ms)                                                                                                           
+// √ [3] responds with the correct status code on success (2 ms)                                                                                    
+// √ [4] responds with the correct message & status code on validation problem (9 ms) 
+
 // When the client makes a `POST` request to `/api/users`:
 
 // - If the request body is missing the `name` or `bio` property:
@@ -130,6 +136,69 @@ server.post('/api/users', (req, res) => {
             })
         })
     }
+})
+
+// [GET] /api/users                                                                                                                                   
+// √ [5] can get all the users (3 ms)                                                                                                               
+// √ [6] can get the correct users (3 ms)
+
+// When the client makes a `GET` request to `/api/users`:
+
+// - If there's an error in retrieving the _users_ from the database:
+//   - respond with HTTP status code `500`.
+//   - return the following JSON object: `{ message: "The users information could not be retrieved" }`.
+
+server.get('/api/users', (req, res) => {
+    User.find()
+    .then(users => {
+        res.json(users)
+    })
+    .catch(err => {
+        res.status(500).json({
+            message: "The users information could not be retrieved",
+            err: err.message,
+            stack: err.stack,
+        })
+    })
+})
+
+// [GET] /api/users/:id                                                                                                                               
+// √ [7] responds with the correct user (5 ms)                                                                                                      
+// √ [8] responds with the correct message & status code on bad id (4 ms)
+
+// When the client makes a `GET` request to `/api/users/:id`:
+
+// - If the _user_ with the specified `id` is not found:
+
+//   - respond with HTTP status code `404` (Not Found).
+//   - return the following JSON object: `{ message: "The user with the specified ID does not exist" }`.
+
+// - If there's an error in retrieving the _user_ from the database:
+//   - respond with HTTP status code `500`.
+//   - return the following JSON object: `{ message: "The user information could not be retrieved" }`.
+
+server.get('/api/users/:id', (req, res) => {
+    User.findById(req.params.id)
+    .then(user => {
+        if (!user) {
+            res.status(404).json({
+                message: "The user with the specified ID does not exist",
+            })
+        }
+        res.json(user)
+    })
+    .catch(err => {
+        res.status(500).json({
+            message: "The user information could not be retrieved",
+            err: err.message,
+            stack: err.stack,
+        })
+    })
+})
+server.use('*', (req, res) => {
+    res.status(404).json({
+        message: "not found"
+    })
 })
 
 module.exports = server; // EXPORT YOUR SERVER instead of {}
